@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{index :: head}"></head>
+
+<body>
+    <a href="javascript:history.back()" class="back-button">Back</a>
+    <div class="container">
+        <h1>Add Domain</h1>
+        <form id="addDomainForm" onsubmit="submitForm(event)">
+            <select name="client_id" required>
+                <option value="" disabled selected>Select Client</option>
+                <option th:each="client : ${clients}" th:value="${client.id}" th:text="${client.name}">
+                </option>
+            </select>
+            <select name="server_id" required>
+                <option value="" disabled selected>Select Mail Server</option>
+                <option th:each="server : ${mailservers}" th:value="${server.id}" th:text="${server.name}">
+                </option>
+            </select>
+            <input type="text" name="domain" placeholder="Domain" required>
+            <button type="submit">Add</button>
+        </form>
+    </div>
+
+    <script>
+    function submitForm(event) {
+        event.preventDefault();
+        
+        const form = event.target;
+        const formData = new FormData(form);
+        
+        fetch('/addDomain', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(data => {
+                    throw new Error(data.message || 'Failed to add domain');
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            showGrowlMessage(data.message, true);
+        })
+        .catch(error => {
+            showGrowlMessage(error.message, false);
+        });
+    }
+
+    function showGrowlMessage(message, isSuccess) {
+        const growl = document.createElement('div');
+        growl.className = `growl-notification ${isSuccess ? 'growl-success' : 'growl-error'}`;
+        growl.textContent = message;
+        document.body.appendChild(growl);
+
+        setTimeout(() => {
+            growl.remove();
+        }, 3000);
+    }
+    </script>
+</body>
+
+</html>

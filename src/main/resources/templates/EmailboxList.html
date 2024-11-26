@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Emailbox List</title>
+    <link th:href="@{/resources/styles/style.css}" rel="stylesheet" />
+</head>
+<body>
+    <a href="javascript:history.back()" class="back-button">Back</a>
+    <div class="container">
+        <h1>Emailbox List (<span th:text="${mailboxes.size()}"></span> total)</h1>
+        
+        <!-- Domain Filter -->
+        <div class="filter-section">
+            <select id="domainFilter" onchange="filterByDomain(this.value)">
+                <option value="">All Domains</option>
+                <option th:each="domain : ${domains}" 
+                        th:value="${domain.id}"
+                        th:text="${domain.mailDomain}">
+                </option>
+            </select>
+        </div>
+
+        <table class="domain-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Email</th>
+                    <th>Domain</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th>Modified</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="mailbox : ${mailboxes}">
+                    <td th:text="${mailbox.id}"></td>
+                    <td th:text="${mailbox.email}"></td>
+                    <td th:text="${mailbox.domainId}"></td>
+                    <td th:class="${mailbox.status == 0 ? 'status-active' : 'status-inactive'}"
+                        th:text="${mailbox.status == 0 ? 'Active' : 'Inactive'}">
+                    </td>
+                    <td th:text="${#dates.format(mailbox.created, 'yyyy-MM-dd HH:mm')}"></td>
+                    <td th:text="${#dates.format(mailbox.modified, 'yyyy-MM-dd HH:mm')}"></td>
+                </tr>
+            </tbody>
+        </table>
+        
+    </div>
+
+    <script>
+        function filterByDomain(domainId) {
+            let url = '/mailboxes';
+            if (domainId) {
+                url += '?domainId=' + domainId;
+            }
+            window.location.href = url;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deliverability Ninja</title>
+    <link th:href="@{/resources/styles/style.css}" rel="stylesheet" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div th:replace="~{header :: header}">
+        <a href="/logout">Log out</a>
+    </div>
+    <ul>
+        <li><a href="/addDomain">Add Domain</a></li>
+        <li><a href="/domains">List Domains</a></li>
+        <li><a href="/addMailbox">Add Mailbox</a></li>
+        <li><a href="/mailboxes">List Mailboxes</a></li>
+        <li><a href="/addIpPool">Add IP Pool</a></li>
+    </ul>
+</body>
+</html>

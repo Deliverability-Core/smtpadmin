@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Domain List</title>
+    <link th:href="@{/resources/styles/style.css}" rel="stylesheet" />
+</head>
+
+<body>
+    <a href="javascript:history.back()" class="back-button">Back</a>
+    <div class="container">
+        <h1>Domain List</h1>
+
+        <table class="domain-table">
+            <thead>
+                <tr>
+                    <th>Client Name</th>
+                    <th>Domain TLD</th>
+                    <th>Mail Domain</th>
+                    <th>Domain Status</th>
+                    <th>Provider Name</th>
+                    <th>SMTP2GO</th>
+                    <th>Mailgun</th>
+                    <th>Sendgrid</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="domain : ${domains}">
+                    <td th:text="${domain.clientName}"></td>
+                    <td th:text="${domain.domainTld}"></td>
+                    <td th:text="${domain.mailDomain}"></td>
+                    <td th:class="${domain.domainStatus == 0 ? 'status-active' : 'status-inactive'}"
+                        th:text="${domain.domainStatus == 0 ? 'Active' : 'Inactive'}">
+                    </td>
+                    <td th:text="${domain.providerName}"></td>
+                    <td>
+                        <button class="add-button"
+                            th:attr="onclick=|addDomainToSMTP2GO('${domain.domainTld}')|">Add</button>
+                        <button class="verify-button"
+                            th:attr="onclick=|verifyDomainInSMTP2GO('${domain.domainTld}')|">Verify</button>
+                    </td>
+                    <td>
+                        <button class="add-button"
+                            th:attr="onclick=|addDomainToMailgun('${domain.domainTld}')|">Add</button>
+                        <button class="verify-button"
+                            th:attr="onclick=|verifyDomainInMailgun('${domain.domainTld}')|">Verify</button>
+                    </td>
+                    <td>
+                        <button class="add-button"
+                            th:attr="onclick=|addDomainToSendgrid('${domain.domainTld}')|">Add</button>
+                        <button class="verify-button"
+                            th:attr="onclick=|verifyDomainInSendgrid('${domain.domainTld}')|">Verify</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <script>
+        function showGrowlMessage(message, isSuccess) {
+            const notification = document.createElement('div');
+            notification.className = `growl-notification ${isSuccess ? 'growl-success' : 'growl-error'}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            // Remove the notification after 3 seconds
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        function handleResponse(response, actionType, provider) {
+            if (!response.ok) {
+                return response.text().then(text => {
+                    throw new Error(text || `Failed to ${actionType} domain in ${provider}`);
+                });
+            }
+            return response.json();
+        }
+
+        function addDomainToSMTP2GO(domain) {
+            console.log("addDomainToSMTP2GO: " + domain);
+            fetch('/addDomainInSMTP2GO', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ domain: domain })
+            })
+                .then(response => handleResponse(response, 'add', 'SMTP2GO'))
+                .then(data => {
+                    showGrowlMessage(data.message || 'Domain successfully added to SMTP2GO', true);
+                })
+                .catch(error => {
+                    showGrowlMessage(error.message, false);
+                });
+        }
+
+        function verifyDomainInSMTP2GO(domain) {
+            console.log("verifyDomainInSMTP2GO: " + domain);
+            fetch('/verifyDomainInSMTP2GO', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ domain: domain })
+            })
+                .then(response => handleResponse(response, 'verify', 'SMTP2GO'))
+                .then(data => {
+                    showGrowlMessage(data.message || 'Domain successfully verified in SMTP2GO', true);
+                })
+                .catch(error => {
+                    showGrowlMessage(error.message, false);
+                });
+        }
+
+        // Update the remaining functions similarly
+        function addDomainToMailgun(domain) {
+            fetch('/addDomainInMailgun', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ domain: domain })
+            })
+                .then(response => handleResponse(response, 'add', 'Mailgun'))
+                .then(data => {
+                    showGrowlMessage(data.message || 'Domain successfully added to Mailgun', true);
+                })
+                .catch(error => {
+                    showGrowlMessage(error.message, false);
+                });
+        }
+
+        function verifyDomainInMailgun(domain) {
+            fetch('/verifyDomainInMailgun', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ domain: domain })
+            })
+                .then(response => handleResponse(response, 'verify', 'Mailgun'))
+                .then(data => {
+                    showGrowlMessage(data.message || 'Domain successfully verified in Mailgun', true);
+                })
+                .catch(error => {
+                    showGrowlMessage(error.message, false);
+                });
+        }
+
+        function addDomainToSendgrid(domain) {
+            fetch('/addDomainInSendgrid', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ domain: domain })
+            })
+                .then(response => handleResponse(response, 'add', 'Sendgrid'))
+                .then(data => {
+                    showGrowlMessage(data.message || 'Domain successfully added to Sendgrid', true);
+                })
+                .catch(error => {
+                    showGrowlMessage(error.message, false);
+                });
+        }
+
+        function verifyDomainInSendgrid(domain) {
+            fetch('/verifyDomainInSendgrid', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ domain: domain })
+            })
+                .then(response => handleResponse(response, 'verify', 'Sendgrid'))
+                .then(data => {
+                    showGrowlMessage(data.message || 'Domain successfully verified in Sendgrid', true);
+                })
+                .catch(error => {
+                    showGrowlMessage(error.message, false);
+                });
+        }
+    </script>
+</body>
+
+</html>

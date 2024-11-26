@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{index :: head}"></head>
+
+<body>
+    <a href="javascript:history.back()" class="back-button">Back</a>
+    <div class="container">
+        <h1>Add IP Pool</h1>
+        <form id="ipPoolForm" onsubmit="submitForm(event)">
+            <select name="domain_id" id="domainId" required>
+                <option value="" disabled selected>Select Domain</option>
+                <option th:each="domain : ${domains}" th:value="${domain.id}" th:text="${domain.mailDomain}">
+                </option>
+            </select>
+
+            <div>
+                <label for="smtpProvider">SMTP Provider:</label>
+                <select id="smtpProvider" name="smtp_provider_id" required>
+                    <option value="">Select SMTP Provider</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="poolName">IP Pool Name:</label>
+                <input type="text" id="poolName" name="pool_name" required>
+            </div>
+
+            <button type="submit">Add IP Pool</button>
+        </form>
+    </div>
+
+    <script>
+        function submitForm(event) {
+            event.preventDefault();
+            const formData = new FormData(document.getElementById('ipPoolForm'));
+            payload = {
+                domainId: formData.get('domain_id'),
+                smtpProviderId: formData.get('smtp_provider_id'),
+                ipPool: formData.get('pool_name')
+            }
+            fetch('/addIpPool', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.message || 'Failed to add IP pool');
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                showGrowlMessage(data.message, true);
+            })
+            .catch(error => {
+                showGrowlMessage(error.message, false);
+            });
+        }
+
+        function showGrowlMessage(message, isSuccess) {
+            const growl = document.createElement('div');
+            growl.className = `growl-notification ${isSuccess ? 'growl-success' : 'growl-error'}`;
+            growl.textContent = message;
+            document.body.appendChild(growl);
+
+            setTimeout(() => {
+                growl.remove();
+            }, 3000);
+        }
+
+        $(document).ready(function() {
+            $('#domainId').on('change', function() {
+                const domainId = $(this).val();
+                if (domainId) {
+                    $.get(`/smtp-providers/${domainId}`, function(providers) {
+                        const providerSelect = $('#smtpProvider');
+                        providerSelect.empty();
+                        providerSelect.append('<option value="">Select SMTP Provider</option>');
+                        providers.forEach(provider => {
+                            providerSelect.append(`<option value="${provider.id}">${provider.name}</option>`);
+                        });
+                        showGrowlMessage('SMTP providers loaded successfully', true);
+                    }).fail(function(error) {
+                        showGrowlMessage('Failed to load SMTP providers', false);
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
