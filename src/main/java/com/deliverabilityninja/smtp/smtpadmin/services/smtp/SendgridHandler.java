@@ -56,26 +56,27 @@ public class SendgridHandler {
 
     private void parseSendGridResponse(String domain, JsonObject domainData) throws IOException {
         JsonObject dns = domainData.getAsJsonObject("dns");
-
         List<DnsRecord> recordsList = new ArrayList<>();
         addDnsRecord(dns.getAsJsonObject("mail_cname"), recordsList, domain);
         addDnsRecord(dns.getAsJsonObject("dkim1"), recordsList, domain);
         addDnsRecord(dns.getAsJsonObject("dkim2"), recordsList, domain);
+        addDnsRecord(null, recordsList, domain);
         Map<String, List<DnsRecord>> records = Map.of("sendgrid_" + domain, recordsList);
         logger.info("records: " + records.toString());
         godaddyHandler.convertToGoDaddyRecords(records, domain);
     }
 
     private static void addDnsRecord(JsonObject record, List<DnsRecord> recordsList, String domain) {
-        logger.info("record: " + record.toString());
-        String host = record.get("host").getAsString();
-        // Remove domain suffix if present
-        if (host.endsWith("." + domain)) {
-            host = host.substring(0, host.length() - ("." + domain).length());
-        }
-
         if (record != null) {
+            logger.info("record: " + record.toString());
+            String host = record.get("host").getAsString();
+            // Remove domain suffix if present
+            if (host.endsWith("." + domain)) {
+                host = host.substring(0, host.length() - ("." + domain).length());
+            }
             recordsList.add(new DnsRecord(record.get("type").getAsString().toUpperCase(), host, record.get("data").getAsString(), 3600));
+        } else {
+            recordsList.add(new DnsRecord("TXT", "_dmarc.", "v=DMARC1; p=none;", 3600));
         }
     }
 

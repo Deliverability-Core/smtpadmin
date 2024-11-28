@@ -101,8 +101,8 @@ public class SMTP2GOHander {
                         3600));
 
         Map<String, List<DnsRecord>> records = Map.of("smtp2go_" + domain, dnsRecords);
-        List<DnsRecord> godaddyRecords = convertToGoDaddyRecords(records);
-        updateGoDaddyDNS(domain, godaddyRecords);
+        // List<DnsRecord> godaddyRecords = convertToGoDaddyRecords(records);
+        // updateGoDaddyDNS(domain, godaddyRecords);
         godaddyHandler.convertToGoDaddyRecords(records, domain);
     }
 
