@@ -1,7 +1,5 @@
 package com.deliverabilityninja.smtp.smtpadmin.dto.godaddy;
 
-import lombok.Builder;
-@Builder
 public class DnsRecord {
     private String type;
     private String name;

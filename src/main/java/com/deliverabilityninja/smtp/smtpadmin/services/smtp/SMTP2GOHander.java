@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -47,7 +48,11 @@ public class SMTP2GOHander {
 
     private void configureSMTP2GO(String domain) throws IOException {
         logger.info("Configuring SMTP2GO for domain: " + domain);
-        OkHttpClient client = new OkHttpClient();
+        OkHttpClient client = new OkHttpClient.Builder()
+                .connectTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
+                .writeTimeout(30, TimeUnit.SECONDS)
+                .build();
         ObjectMapper objectMapper = new ObjectMapper();
         MediaType JSON = MediaType.get("application/json; charset=utf-8");
         Map<String, Object> requestBody = Map.of(
@@ -65,15 +70,17 @@ public class SMTP2GOHander {
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
+            String responseBody = response.body().string();
             if (!response.isSuccessful()) {
-                throw new IOException("SMTP2GO API error: " + response.body().string());
+                throw new IOException("SMTP2GO API error: " + responseBody);
             }
-            //logger.info("SMTP2GO API response: " + response.body().string());
-            parseSMTP2GOResponse(domain, response.body().string());
+            logger.info("SMTP2GO API response: " + responseBody);
+            parseSMTP2GOResponse(domain, responseBody);
         }
     }
 
     private void parseSMTP2GOResponse(String domain, String responseBody) throws IOException {
+        logger.info("Parsing SMTP2GO response");
         ObjectMapper objectMapper = new ObjectMapper();
         SMTP2GOResponse response = objectMapper.readValue(responseBody, SMTP2GOResponse.class);
 
@@ -94,9 +101,8 @@ public class SMTP2GOHander {
                         3600));
 
         Map<String, List<DnsRecord>> records = Map.of("smtp2go_" + domain, dnsRecords);
-        // List<DnsRecord> godaddyRecords = convertToGoDaddyRecords(records);
-        // logger.info("godaddyRecords: " + godaddyRecords.toString());
-        // updateGoDaddyDNS(domain, godaddyRecords);
+        List<DnsRecord> godaddyRecords = convertToGoDaddyRecords(records);
+        updateGoDaddyDNS(domain, godaddyRecords);
         godaddyHandler.convertToGoDaddyRecords(records, domain);
     }
 

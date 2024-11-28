@@ -36,7 +36,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 public class MailcowMailboxHandler {
 
     @Autowired
@@ -46,7 +45,6 @@ public class MailcowMailboxHandler {
     MailboxDAO mailboxDAO;
 
     @Autowired
-    @Qualifier("jasyptStringEncryptor")
     StringEncryptor encryptor;
 
     private static final Logger logger = LoggerFactory.getLogger(MailcowMailboxHandler.class);
